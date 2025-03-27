@@ -1,0 +1,12 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+- 使用 @modelcontextprotocol/sdk 启动 MCP 项目，使用 stdio 方式启动
+- 使用 simple-git 管理 git 仓库，使用 fs-extra 读取文件
+- 使用 Typescript，类型出问题尽量不要动 tsconfig，好好想想是不是你自己的问题，实在不行你去 node_modules 中看下源码怎么写的
+- 使用 pnpm 管理依赖，配置好运行脚本，如果需求有现成工具库可以实现，优先安装现成工具；不要试图生成 package.json 里的依赖，而是使用 pnpm 管理依赖
+- 尽可能使用指令生成相关配置文件，除非你确定手动修改更合理
+- 请务必遵循 当前版本 @modelcontextprotocol/sdk 对接口的定义
+- 提高代码抽象程度，可以放在多个文件/文件夹中，但同样的你读取的时候也要了解这个项目的全貌

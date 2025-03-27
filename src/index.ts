@@ -1,41 +1,77 @@
+#!/usr/bin/env node
+
+import { startServer } from "./server.js";
+import {
+  ensureConfigFile,
+  ensureRepoRefDirs,
+  readConfig,
+} from "./utils/config.js";
+import { cloneRepo, updateRepo } from "./utils/git.js";
+
+if (process.env.NODE_ENV === "development") {
+  import("mcps-logger/console");
+} else {
+  // 在生产环境中，禁用所有日志输出
+  console.log = () => {};
+  console.error = () => {};
+  console.warn = () => {};
+  console.debug = () => {};
+}
+
 /**
- * simple-git示例 - 克隆仓库并切换分支
+ * 初始化所有仓库
  */
+async function initRepos() {
+  const config = await readConfig();
 
-import simpleGit, { SimpleGit } from "simple-git";
-
-async function cloneAndCheckout() {
-  try {
-    // 初始化git实例
-    const git: SimpleGit = simpleGit();
-
-    // 仓库地址和目标目录
-    const repoUrl = "ssh://git";
-    const targetDir = "./repo";
-
-    console.log(`开始克隆仓库: ${repoUrl}`);
-
-    // 克隆仓库
-    await git.clone(repoUrl, targetDir);
-    console.log("仓库克隆完成");
-
-    // 切换到目标目录中的git实例
-    const repoGit: SimpleGit = simpleGit(targetDir);
-
-    // 切换到指定分支
-    const targetBranch = "develop/2.x";
-    await repoGit.checkout(targetBranch);
-    console.log(`已成功切换到分支: ${targetBranch}`);
-
-    // 获取当前分支信息
-    const branchSummary = await repoGit.branch();
-    console.log(`当前分支: ${branchSummary.current}`);
-  } catch (error) {
-    console.error("操作失败:", error);
+  // 克隆配置中的所有仓库
+  for (const repo of config.repos) {
+    try {
+      await cloneRepo(repo);
+      await updateRepo(repo.name);
+    } catch (error) {
+      console.error(`📦 Failed to initialize repository ${repo.name}:`, error);
+    }
   }
 }
 
-// 执行克隆和切换分支操作
-cloneAndCheckout();
+/**
+ * 主函数
+ */
+async function main() {
+  // 解析命令行参数
+  const args = process.argv.slice(2);
+  const command = args[0] || "start";
 
-export { cloneAndCheckout };
+  // 确保配置目录和文件存在
+  await ensureRepoRefDirs();
+  await ensureConfigFile();
+
+  switch (command) {
+    case "start":
+      // 初始化仓库
+      await initRepos();
+
+      // 启动MCP服务器
+      console.log("⏳ Starting RepoRef MCP server...");
+      await startServer();
+      break;
+
+    case "init":
+      // 仅初始化仓库
+      await initRepos();
+      console.log("📦 Repository initialization completed");
+      break;
+
+    default:
+      console.log("⚠️ Unknown command:", command);
+      console.log("Available commands: start, init");
+      process.exit(1);
+  }
+}
+
+// 执行主函数
+main().catch((error) => {
+  console.error("⚠️ Error:", error);
+  process.exit(1);
+});

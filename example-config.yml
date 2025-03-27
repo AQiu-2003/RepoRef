@@ -1,0 +1,12 @@
+# RepoRef 配置文件示例
+# 将此文件放在 ~/.repo-ref/config.yml
+
+repos:
+  - name: fastmcp
+    alias: [fmcp, fastmcp]
+    url: https://github.com/punkpeye/fastmcp.git
+    description: "FastMCP是一个TypeScript MCP框架"
+    defaultPath: src
+    branches:
+      - name: main
+        description: "主分支"

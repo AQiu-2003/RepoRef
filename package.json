@@ -1,35 +1,47 @@
 {
   "name": "repo-ref-mcp",
   "version": "1.0.0",
-  "description": "",
+  "description": "帮助Agent获取外部Git仓库信息的MCP服务器",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
+  "bin": {
+    "repo-ref": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "example-config.yml"
+  ],
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
+    "build": "rm -rf dist && tsc",
+    "dev": "trap 'kill $(jobs -p)' INT; tsx --env-file .env.development --watch-path src src/index.ts & mcps-logger",
+    "logger": "mcps-logger",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "inspect": "pnpx @modelcontextprotocol/inspector tsx src/index.ts"
   },
   "engines": {
     "node": ">=22"
   },
-  "keywords": [],
+  "keywords": [
+    "mcp",
+    "repo",
+    "git"
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.6.3",
   "devDependencies": {
+    "@types/fs-extra": "11.0.4",
     "@types/node": "^22.13.13",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   },
   "dependencies": {
-    "fastmcp": "^1.20.5",
+    "@modelcontextprotocol/sdk": "^1.8.0",
+    "fs-extra": "11.3.0",
+    "mcps-logger": "1.0.0-rc.4",
     "simple-git": "^3.27.0",
+    "yaml": "^2.7.0",
     "zod": "^3.24.2"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "nodegit"
-    ]
   }
 }
