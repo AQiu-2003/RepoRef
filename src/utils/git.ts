@@ -137,9 +137,9 @@ export async function listFiles(
     const entries = await fs.readdir(fullPath, { withFileTypes: true });
     return {
       path: fullPath,
-      entries: entries.map(
-        (entry) => `${entry.name}${entry.isDirectory() ? "/" : ""}`
-      ),
+      entries: entries
+        .filter(entry => entry.name !== '.reporef.md' && entry.name !== '.rr.md')
+        .map(entry => `${entry.name}${entry.isDirectory() ? "/" : ""}`)
     };
   } catch (error) {
     console.error(`📦 Failed to read path ${fullPath}:`, error);

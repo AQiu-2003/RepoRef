@@ -2,6 +2,7 @@ import { ToolCallback } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { RepoInfo } from "../types.js";
 import { findRepoConfig, readConfig } from "../utils/config.js";
+import { getPromptFiles } from "../utils/prompt.js";
 
 export const getRepoToolSchema = {
   name: z
@@ -61,6 +62,9 @@ export const getRepoHandler: ToolCallback<typeof getRepoToolSchema> = async (
       };
     }
 
+    // 获取仓库根目录的提示文件
+    const [rootPromptFiles] = await getPromptFiles(repo.name, "", true);
+
     // 返回仓库信息和分支列表
     const repoInfo: RepoInfo = {
       name: repo.name,
@@ -77,6 +81,10 @@ export const getRepoHandler: ToolCallback<typeof getRepoToolSchema> = async (
         {
           type: "text" as const,
           text: JSON.stringify(repoInfo, null, 2),
+        },
+        {
+          type: "text" as const,
+          text: `Prompts for this repo:\n${rootPromptFiles.content}`,
         },
       ],
     };

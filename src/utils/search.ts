@@ -54,6 +54,10 @@ export async function buildRepoCache(
           const subResults = await scanDir(fullPath, itemRelativePath);
           results.push(...subResults);
         } else {
+          // 跳过 .reporef.md 和 .rr.md 文件，不将它们添加到缓存中
+          if (item.name === ".reporef.md" || item.name === ".rr.md") {
+            continue;
+          }
           // 添加文件路径
           results.push(itemRelativePath);
         }
@@ -104,10 +108,11 @@ export async function searchFiles(
   // 创建不区分大小写的正则表达式
   const pattern = new RegExp(searchPattern, "i");
 
-  // 从缓存中过滤匹配的文件
-  const matchedFiles = filePathCache[cacheKey].filter((filePath) =>
-    pattern.test(filePath)
-  );
+  // 从缓存中过滤匹配的文件（排除 .reporef.md 和 .rr.md 文件）
+  const matchedFiles = filePathCache[cacheKey].filter((filePath) => {
+    const fileName = filePath.split('/').pop() || '';
+    return pattern.test(filePath) && fileName !== '.reporef.md' && fileName !== '.rr.md';
+  });
 
   return matchedFiles;
 }

@@ -3,6 +3,7 @@ import path from "path";
 import { z } from "zod";
 import { findRepoConfig, readConfig } from "../utils/config.js";
 import { listFiles, readFileContent, switchBranch } from "../utils/git.js";
+import { getPromptFiles } from "../utils/prompt.js";
 import {
   buildRepoCache,
   clearRepoCache,
@@ -92,12 +93,23 @@ export const getFileListHandler: ToolCallback<
     // 获取文件列表
     const files = await listFiles(repoConfig.name, actualPath);
 
+    // 获取路径的提示文件内容（不包含根目录的提示文件）
+    const promptFiles = await getPromptFiles(
+      repoConfig.name,
+      actualPath,
+      false
+    );
+
     return {
       content: [
         {
           type: "text" as const,
           text: JSON.stringify(files),
         },
+        ...promptFiles.map((file) => ({
+          type: "text" as const,
+          text: `Prompts for path: ${file.path}:\n${file.content}`,
+        })),
       ],
     };
   } catch (error) {
@@ -158,15 +170,30 @@ export const getFileContentHandler: ToolCallback<
     // 读取文件内容
     const content = await readFileContent(repoConfig.name, filePath);
 
+    // 获取文件路径相关的提示文件内容（不包含根目录的提示文件）
+    const promptFiles = await getPromptFiles(repoConfig.name, filePath, false);
+
     // 如果不是markdown文件，用代码块包装
     const fileExtension = path.extname(filePath).toLowerCase();
     const isMarkdown = fileExtension === ".md" || fileExtension === ".markdown";
 
-    const formattedContent = isMarkdown
+    let formattedContent = isMarkdown
       ? content
       : `\`\`\`${fileExtension.substring(1) || ""}
 ${content}
 \`\`\``;
+
+    // 如果有提示文件，添加到返回内容中
+    if (promptFiles.length > 0) {
+      // 为内容添加提示文件信息
+      const promptInfo = promptFiles
+        .map(
+          (file) => `\n\n---\n**提示信息 (${file.path}):**\n\n${file.content}`
+        )
+        .join("\n");
+
+      formattedContent += promptInfo;
+    }
 
     return {
       content: [

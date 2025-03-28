@@ -10,6 +10,7 @@
   },
   "files": [
     "dist",
+    "README_en.md",
     "example-config.yml"
   ],
   "scripts": {
