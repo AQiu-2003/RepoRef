@@ -17,7 +17,9 @@
     "dev": "trap 'kill $(jobs -p)' INT; tsx --env-file .env.development --watch-path src src/index.ts & mcps-logger",
     "logger": "mcps-logger",
     "start": "node dist/index.js",
-    "inspect": "pnpx @modelcontextprotocol/inspector tsx src/index.ts"
+    "inspect": "pnpx @modelcontextprotocol/inspector tsx src/index.ts",
+    "index": "node dist/test/test.js",
+    "query": "node dist/test/query.js"
   },
   "engines": {
     "node": ">=22"
@@ -33,14 +35,27 @@
   "devDependencies": {
     "@types/fs-extra": "11.0.4",
     "@types/node": "^22.13.13",
+    "@types/physical-cpu-count": "^2.0.2",
+    "@types/progress": "^2.0.7",
+    "ts-node": "^10.9.2",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
   },
   "dependencies": {
+    "@lancedb/lancedb": "^0.18.2",
+    "@langchain/core": "^0.3.43",
+    "@langchain/ollama": "^0.2.0",
     "@modelcontextprotocol/sdk": "^1.8.0",
+    "apache-arrow": "^18.1.0",
+    "commander": "^13.1.0",
     "fs-extra": "11.3.0",
+    "langchain": "^0.3.19",
     "mcps-logger": "1.0.0-rc.4",
+    "physical-cpu-count": "^2.0.0",
+    "progress": "^2.0.3",
     "simple-git": "^3.27.0",
+    "tinypool": "^1.0.2",
+    "ts-morph": "^25.0.1",
     "yaml": "^2.7.0",
     "zod": "^3.24.2"
   }
