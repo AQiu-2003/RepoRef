@@ -1,15 +1,18 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import {
-    getFileContentHandler,
-    getFileContentToolSchema,
-    getFileListHandler,
-    getFileListToolSchema,
-    getRepoHandler,
-    getRepoToolSchema,
+  getFileContentHandler,
+  getFileContentToolSchema,
+  getFileListHandler,
+  getFileListToolSchema,
+  getRepoHandler,
+  getRepoToolSchema,
+  searchRepoHandler,
+  searchRepoToolSchema,
 } from "./tools/index.js";
 import { Config } from "./types.js";
 import { readConfig } from "./utils/config.js";
+import { buildRepoCache } from "./utils/search.js";
 
 /**
  * 创建并启动 MCP 服务器
@@ -37,6 +40,28 @@ And when you meet the following problem, you can use it to get the source code: 
 Available repositories:
 ${config.repos.length > 0 ? reposDescription : "No repositories available now."}
   `.trim();
+
+  // 初始化仓库文件缓存
+  console.log("Initializing repository file cache...");
+  try {
+    // 异步加载所有仓库的默认分支缓存
+    const cachePromises = config.repos.map(async (repo) => {
+      if (repo.branches && repo.branches.length > 0) {
+        const defaultBranch = repo.branches[0].name;
+        console.log(
+          `Preloading cache for repository ${repo.name} on branch ${defaultBranch}...`
+        );
+        await buildRepoCache(repo.name, defaultBranch);
+      }
+    });
+
+    // 不等待缓存完成，让它在后台异步处理
+    cachePromises.forEach((p) =>
+      p.catch((e) => console.error(`Cache initialization error: ${e.message}`))
+    );
+  } catch (error) {
+    console.error("Cache initialization error:", error);
+  }
 
   // 创建 MCP 服务器
   const server = new McpServer(
@@ -75,6 +100,23 @@ You should use this tool after you get the repository information and file list.
     getFileContentToolSchema,
     getFileContentHandler
   );
+  server.tool(
+    "search_repo",
+    `
+After you get the repository information, you can use this tool to search for matching files. Support fuzzy matching and case-insensitive search.
+For example: Using "test" can match files like "src/test/index.ts" and "src/TEST/type.ts".
+`,
+    searchRepoToolSchema,
+    searchRepoHandler
+  );
+  //   server.tool(
+  //     "manage_cache",
+  //     `
+  // You can use this tool to manage the file cache. You can check the cache status or refresh the cache.
+  // `,
+  //     manageCacheToolSchema,
+  //     manageCacheHandler
+  //   );
 
   // 连接到 STDIO 传输
   const transport = new StdioServerTransport();

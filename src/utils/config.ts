@@ -27,16 +27,16 @@ export async function ensureRepoRefDirs(): Promise<void> {
  */
 export async function ensureConfigFile(): Promise<void> {
   if (!(await fs.pathExists(CONFIG_PATH))) {
-    if (await fs.pathExists(exampleConfigPath)) {
-      await fs.copyFile(exampleConfigPath, CONFIG_PATH);
-      console.log(`⚙️ Created example config file: ${CONFIG_PATH}`);
-    } else {
-      const defaultConfig: Config = {
-        repos: [],
-      };
-      await fs.writeFile(CONFIG_PATH, YAML.stringify(defaultConfig));
-      console.log(`⚙️ Created empty config file: ${CONFIG_PATH}`);
-    }
+    const defaultConfig: Config = {
+      repos: [],
+    };
+    const configContent = YAML.stringify(defaultConfig);
+    const commentedConfig = configContent
+      .split("\n")
+      .map((line) => (line.trim() ? `# ${line}` : ""))
+      .join("\n");
+    await fs.writeFile(CONFIG_PATH, commentedConfig);
+    console.log(`⚙️ Created commented config file: ${CONFIG_PATH}`);
   }
 }
 
